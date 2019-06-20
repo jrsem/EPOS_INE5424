@@ -22,7 +22,8 @@ struct Traits<Machine> : public Traits<Machine_Common>
   // Physical Memory
   static const unsigned int MEM_BASE = 0x00000000; //o vetor de tabela é copiado para o endereço 0x00
   static const unsigned int MEM_TOP = 0x07FFFFFc;  // (0x10000000-4 ==>ultimo endereço da memoria)=== 4GB
-
+  static const unsigned int VECTOR_TABLE = 0x00010000;
+  static const unsigned int PAGE_TABLES = 0x07f00000;
   static const unsigned int BOOT_STACK = 0x07eFFFFC; //(0x07F00000 - 4) // MEM_TOP - sizeof(int)
 
   static const unsigned int APP_LOW = 0x000000000;

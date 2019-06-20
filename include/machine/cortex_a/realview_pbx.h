@@ -274,6 +274,8 @@ public:
 protected:
     static void pre_init();
     static void init();
+    static void enableSCU();
+    static void copyVectorTable();
 };
 
 typedef RealView_PBX Machine_Model;

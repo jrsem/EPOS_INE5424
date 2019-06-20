@@ -6,32 +6,17 @@ __BEGIN_SYS
 
 void Machine::pre_init(System_Info *si)
 {
-    Machine_Model::pre_init();
-
-    Display::init();
+    if (cpu_id == 0)
+    {
+        Machine_Model::copyVectorTable();
+        Display::init();
+        Machine_Model::enableSCU();
+    }
 }
-
-void Machine::send_sgi(int intID, int targetCPU, int filter)
-{
-    int *sgi_reg = (int *)(0x1f000000 + 0x1F00);
-    *sgi_reg = (filter << 24) | ((1 << targetCPU) << 16) | (intID);
-}
-
 void Machine::init()
 {
     db<Init, Machine>(TRC) << "Machine::init()" << endl;
-    //===============
-    // for (int i = 0; i <= 2; i++)
-    Machine::smp_barrier();
-    // if (Machine::cpu_id() == 0)
-    // {
-    send_sgi(0x0, 0x0f, 0x01); //DEU UM SGI NO CPU1
-    // int *apAddr = (int *)0x10000030; // SYS_FLAGSSET register
-    // *apAddr = (int)0x10000;          // all APs execute from 0x10000
-    // }
-
     Machine_Model::init();
-
     if (Traits<IC>::enabled)
         IC::init();
     if (Traits<Timer>::enabled)
@@ -41,5 +26,28 @@ void Machine::init()
         USB::init();
 #endif
 }
+
+//SGI method
+void Machine::send_sgi(int intID, int targetCPU, int filter)
+{
+    int *sgi_reg = (int *)(0x1f000000 + 0x1F00);
+    *sgi_reg = (filter << 24) | ((1 << targetCPU) << 16) | (intID);
+}
+
+//===================================================
+//Send SGIs to wakeup other CPUs from the WFI state
+//intID=0x00, CPUID = 0 to 3, filter=0x00
+//intID=0x00, CPUID = 1 to 3, filter=0x00
+//intID=0x00, CPUID = 2 to 3, filter=0x00
+//intID=0x00, CPUID = 3 to 3, filter=0x00
+
+//Send SGI to all
+//intID=0x00, CPUID = 0x0f to 3, filter=0x01
+//send_sgi(0x00, CPUID, 0x01);
+//====================================================
+// send_sgi(0x0, 0x0f, 0x01); //DEU UM SGI NO CPU1
+// int *apAddr = (int *)0x10000030; // SYS_FLAGSSET register
+// *apAddr = (int)0x10000;          // all APs execute from 0x10000
+//====================================================
 
 __END_SYS

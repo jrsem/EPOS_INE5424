@@ -3,8 +3,9 @@
         // Interrupt Vector Table
         .section .init
         .type _vector_table, object
-        .global _reset, _vector_table, copy_vectors
+        .global _reset, _vector_table
         .type   _reset,  function
+//create table vector in ROM(0x00)
 _vector_table:
         ldr pc, _reset_addr
         ldr pc, _undefined_instruction_addr
@@ -14,7 +15,7 @@ _vector_table:
         ldr pc, _reserved_addr
         ldr pc, _irq_addr
         ldr pc, _fiq_addr
-
+vectors_end:
 _reset_addr:
         .word _reset
 _undefined_instruction_addr:
@@ -31,34 +32,8 @@ _irq_addr:
         .word _int_entry
 _fiq_addr:
         .word _fiq
-svc_stack:
-.word 0x0FEFFFFC
-irq_stack:
-.word 0xFF00FFC 
  _reset: 
-   // get CPU ID and keep it in R11
- MRC p15, 0, r11, c0, c0, 5 // read CPU ID register into R11
- AND r11, r11, #0x03 // mask in only CPUID
- // set SVC stack
- LDR r0, =svc_stack // r0->svc_stack 
- mov r1, r11 // r1 = cpuid
- add r1, r1, #1 // cpuid++
- lsl r2, r1, #12 // (cpuid+1)* 4096
- add r0, r0, r2
- mov sp, r0 // SVC sp=svc_stack[cpuid] high end
- // go in IRQ mode with interrupts OFF
- MSR cpsr, #0x92
- // set IRQ stack
- LDR r0, =irq_stack // r0->irq_stack (16KB area in t.ld)
- mov r1, r11
- add r1, r1, #1
- lsl r2, r1, #12 // (cpuid+1) * 4096
- add r0, r0, r2
- mov sp, r0 // IRQ sp=irq_stack[cpuid] high end
- // go back to SVC mode with IRQ ON
- MSR cpsr, #0x13
- //================
-// 1.MMU, L1$ disable                                                                         
+// 1.MMU, L1$ disable for the CPU                                                                         
         //-----------------------------------------------                                             
         MRC p15, 0, r1, c1, c0, 0   // Read System Control Register (SCTLR)                           
         BIC r1, r1, #1              // mmu off                                                        
@@ -66,7 +41,7 @@ irq_stack:
         BIC r1, r1, #(1 << 2)       // d-cache & L2-$ off                                             
         MCR p15, 0, r1, c1, c0, 0   // Write System Control Register (SCTLR)                          
         //-----------------------------------------------                                             
-        // 2. invalidate: L1$, TLB, branch predictor                                                  
+        // 2. invalidate: L1$, TLB, branch predictor for the CPU                                                 
         //-----------------------------------------------                                             
         MOV r0, #0                                                                                    
         MCR p15, 0, r0, c7, c5, 0   // Invalidate Instruction Cache                                   
@@ -74,7 +49,7 @@ irq_stack:
         MCR p15, 0, r0, c8, c7, 0   // Invalidate entire Unified Main TLB                             
         ISB                         // instr sync barrier                                             
         //-----------------------------------------------                                             
-        // 2.a. Enable I cache + branch prediction                                                    
+        // 2.a. Enable I cache + branch prediction  for the CPU                                                  
         //-----------------------------------------------                                             
         MRC p15, 0, r0, c1, c0, 0   // System control register                                        
         ORR r0, r0, #1 << 12        // Instruction cache enable                                       
@@ -125,7 +100,7 @@ irq_stack:
         ADD R4, R4, #10                                                                               
                                                                                                       
 mmu_start:                                                                                
-        // Disable MMU                                                                        
+        // Disable MMU of the CPU                                                                       
         MRC p15, 0, r1, c1, c0, 0	// Atribui-se ao R1 o valor do registrador 1 do           
                                     // coprocessor 15                                         
         BIC r1, r1, #0x1           	// Atribui-se ao bit 0 em R1 o valor 0, para              
@@ -133,18 +108,18 @@ mmu_start:
         MCR p15, 0, r1, c1, c0, 0	// Escreve-se no reg 1 do coprocessor 15                  
                                     // o que ha em R1, desabilitando a MMU                    
                                                                                               
-        // Disable L1 Caches                                                                  
+        // Disable L1 Caches  of the cpu                                                                
         MRC p15, 0, r1, c1, c0, 0	// Read Control Register configuration data               
         BIC r1, r1, #(0x1 << 12)	// Disable I Cache                                        
         BIC r1, r1, #(0x1 << 2)		// Disable D Cache                                        
         MCR p15, 0, r1, c1, c0, 0	// Write Control Register configuration data              
                                                                                               
-        // Invalidate L1 Caches                                                               
-        // Invalidate Instruction cache                                                       
+        // Invalidate L1 Caches   of the cpu                                                            
+        // Invalidate Instruction cache of the                                                   
         MOV r1, #0                                                                            
         MCR p15, 0, r1, c7, c5, 0                                                             
                                                                                               
-        // Invalidate Data cache                                                              
+        // Invalidate Data cache  of the cpu                                                            
         // to make the code general purpose, we calculate the                                 
         // cache size first and loop through each set + way                                   
         MRC p15, 1, r0, c0, c0, 0  	// Read Cache Size ID                                     
@@ -164,20 +139,20 @@ mmu_start:
         CMP r1, #4 			        // Last way reached yet?                                  
         BNE way_loop 			    // if not, iterate way_loop                               
                                                                                               
-        // Invalidate TLB                                                                     
+        // Invalidate TLB of the cpu                                                                  
         MCR p15, 0, r1, c8, c7, 0                                                             
                                                                                               
         // Aqui é criada uma L1 translation table na RAM que divide                           
         // todo o espaço de endereçamento de 4GB em seções de 1 MB,                           
         // todas com Full Access e Strongly Ordered                                           
-        LDR r0, =0xDE2			        // Atribui-se ao R0 parte do descriptor               
+        LDR r0, =0xDE2			     // Atribui-se ao R0 parte do descriptor               
         LDR r1, =0xFA0000       	    // Atribui-se ao R1 endereço base                     
                                         // da L1 tranlastion table                            
         LDR r3, = 4095         		    // R3 se torna o contador para o loop                 
                                                                                               
-        write_pte:                  	// Label do loop para escrita das                     
-                                        // page table entry (PTE) da translation table        
-            ORR r2, r0, r3, LSL #20     // Atribui-se ao R2 OR entre o endereço               
+        write_pte:                  // Label do loop para escrita das                     
+                                    // page table entry (PTE) da translation table        
+        ORR r2, r0, r3, LSL #20     // Atribui-se ao R2 OR entre o endereço               
                                         // e os bits padrão da PTE                            
         STR r2, [r1, r3, LSL #2]    	// Escreve-se a PTE na translation table              
                                         // (endereço de escrita é o ttb_address somado        
@@ -216,27 +191,6 @@ mmu_start:
         ORR r1, r1, #0x1           	    // Atribui-se ao bit 0 em R1 o valor 1, para          
                                         // ligar a MMU                                        
         MCR p15, 0, r1, c1, c0, 0	    // Escreve-se no reg 1 do coprocessor 15              
-                                        // o que há em R1, habilitando a MMU         
-  //enable the SCU                                            
-@   MRC p15, 4, r0, c15, c0, 0 // Read peripheral base address      
-@   LDR r1, [r0] // read SCU Control Register                       
-@   ORR r1, r1, #0x1 // set bit0 (Enable bit) to 1                    
-@   STR r1, [r0] // write back modified value                        
-@   BX lr                                                           
- //================
- cmp r11, #0
- bne APs // only CPU0 copy vectors, call main()
-         // Clear the BSS
-        eor     r0, r0
-        ldr     r1, =__bss_start__
-        ldr     r2, =__bss_end__
-.L1:    str     r0, [r1]
-        add     r1, #4
-        cmp     r1, r2
-        blt     .L1
-  b _start
-APs:
-b _start 
-
- 
+                                        // o que há em R1, habilitando a MMU                                                                    
+b _start
 
