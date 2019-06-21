@@ -13,7 +13,6 @@ void Machine::pre_init(System_Info *si)
     {
         //Machine_Model::copyVectorTable();
         Display::init();
-        Machine_Model::enableSCU();
     }
     RealView_PBX::init(); //anable the Gic
     if (Traits<System>::multicore)

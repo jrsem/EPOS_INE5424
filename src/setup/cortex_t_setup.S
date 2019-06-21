@@ -177,7 +177,7 @@ mmu_start:
         MCR p15, 0, r1, c1, c0, 0	    // Escreve-se no reg 1 do coprocessor 15              
                                         // o que há em R1, habilitando a MMU                  
                                                                                               
-        b _start_addr                                                                              
+        b _start                                                                             
 
 _start_addr:
         .word _start
