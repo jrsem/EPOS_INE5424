@@ -55,8 +55,8 @@ void RealView_PBX::config_gic()
   *(int *)(GIC_BASE + 0x100) = 1;
   // Enable distributor control register to send interrupts to CPUs
   *(int *)(GIC_BASE + 0x1000) = 1;
-  config_int(36, 0); // timer ID=36 to CPU0
-                     // config_int(44, 1); // UART0 ID=44 to CPU1
+  // config_int(36, 0); // timer ID=36 to CPU0
+  // config_int(44, 1); // UART0 ID=44 to CPU1
 }
 __END_SYS
 

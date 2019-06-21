@@ -5,7 +5,7 @@
         .type _vector_table, object
         .global _reset,vectors_start,vectors_end,enable_scu
         .type   _reset,  function
-        .global enable_scu,join_smp,
+        .global enable_scu
         @ .type   APstart,  function
 //create table vector in ROM(0x00)
  _reset: 
@@ -166,15 +166,8 @@ mmu_start:
                                         // coprocessor 15                                     
         ORR r1, r1, #0x1           	    // Atribui-se ao bit 0 em R1 o valor 1, para          
                                         // ligar a MMU                                        
-        MCR p15, 0, r1, c1, c0, 0	    // Escreve-se no reg 1 do coprocessor 15              
-cmp r11, #0
-bne APs                                      // o que há em R1, habilitando a MMU                                                                    
+        MCR p15, 0, r1, c1, c0, 0	    // Escreve-se no reg 1 do coprocessor 15                                                   // o que há em R1, habilitando a MMU                                                                    
 b _start
-APs: // each AP call APstart() in C
-adr r0, APaddr
-ldr pc, [r0]
-b CPUsecondary
-APaddr: .word APstart //loar function address
 vectors_start:
         ldr pc, _reset_addr
         ldr pc, _undefined_instruction_addr

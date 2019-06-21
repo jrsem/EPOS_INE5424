@@ -277,7 +277,6 @@ protected:
     static void enableSCU();
     static void config_gic();
     static void config_int(int intID, int targetCPU);
-    static void join_smp();
 };
 
 typedef RealView_PBX Machine_Model;
