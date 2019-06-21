@@ -3,16 +3,25 @@
 #include <machine.h>
 
 __BEGIN_SYS
-
+void wfi()
+{
+    asm("wfi");
+}
 void Machine::pre_init(System_Info *si)
 {
-    if (cpu_id == 0)
+    if (cpu_id() == 0)
     {
-        Machine_Model::copyVectorTable();
+        //Machine_Model::copyVectorTable();
         Display::init();
         Machine_Model::enableSCU();
     }
+    if (Traits<System>::multicore)
+        smp_init(si->bm.n_cpus);
+    send_sgi(0x0, 0x0f, 0x01);       //DEU UM SGI NO CPU1
+    int *apAddr = (int *)0x10000030; // SYS_FLAGSSET register
+    *apAddr = (int)0x10000;          // all APs execute from 0x10000
 }
+
 void Machine::init()
 {
     db<Init, Machine>(TRC) << "Machine::init()" << endl;

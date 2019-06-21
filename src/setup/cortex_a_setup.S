@@ -3,35 +3,11 @@
         // Interrupt Vector Table
         .section .init
         .type _vector_table, object
-        .global _reset, _vector_table
+        .global _reset,vectors_start,vectors_end,enable_scu
         .type   _reset,  function
+        .global enable_scu,join_smp,
+        @ .type   APstart,  function
 //create table vector in ROM(0x00)
-_vector_table:
-        ldr pc, _reset_addr
-        ldr pc, _undefined_instruction_addr
-        ldr pc, _swi_addr
-        ldr pc, _prefetch_abort_addr
-        ldr pc, _data_abort_addr
-        ldr pc, _reserved_addr
-        ldr pc, _irq_addr
-        ldr pc, _fiq_addr
-vectors_end:
-_reset_addr:
-        .word _reset
-_undefined_instruction_addr:
-        .word _undefined_instruction
-_swi_addr:
-        .word _software_interrupt
-_prefetch_abort_addr:
-        .word _prefetch_abort
-_data_abort_addr:
-        .word _data_abort
-_reserved_addr:
-        .word _reserved
-_irq_addr:
-        .word _int_entry
-_fiq_addr:
-        .word _fiq
  _reset: 
 // 1.MMU, L1$ disable for the CPU                                                                         
         //-----------------------------------------------                                             
@@ -191,6 +167,45 @@ mmu_start:
         ORR r1, r1, #0x1           	    // Atribui-se ao bit 0 em R1 o valor 1, para          
                                         // ligar a MMU                                        
         MCR p15, 0, r1, c1, c0, 0	    // Escreve-se no reg 1 do coprocessor 15              
-                                        // o que há em R1, habilitando a MMU                                                                    
+cmp r11, #0
+bne APs                                      // o que há em R1, habilitando a MMU                                                                    
 b _start
+APs: // each AP call APstart() in C
+adr r0, APaddr
+ldr pc, [r0]
+b CPUsecondary
+APaddr: .word APstart //loar function address
+vectors_start:
+        ldr pc, _reset_addr
+        ldr pc, _undefined_instruction_addr
+        ldr pc, _swi_addr
+        ldr pc, _prefetch_abort_addr
+        ldr pc, _data_abort_addr
+        ldr pc, _reserved_addr
+        ldr pc, _irq_addr
+        ldr pc, _fiq_addr
+_reset_addr:
+        .word _reset
+_undefined_instruction_addr:
+        .word _undefined_instruction
+_swi_addr:
+        .word _software_interrupt
+_prefetch_abort_addr:
+        .word _prefetch_abort
+_data_abort_addr:
+        .word _data_abort
+_reserved_addr:
+        .word _reserved
+_irq_addr:
+        .word _int_entry
+_fiq_addr:
+        .word _fiq
+vectors_end:
+
+enable_scu: // enable the SCU //NB: "enable_scu"é uma função global
+MRC p15, 4, r0, c15, c0, 0 // Read peripheral base address
+LDR r1, [r0] // read SCU Control Register
+ORR r1, r1, #0x1 // set bit0 (Enable bit) to 1
+STR r1, [r0] // write back modified value
+BX lr
 

@@ -207,7 +207,7 @@ struct Traits<System> : public Traits<void>
     static const bool multithread = (Traits<Application>::MAX_THREADS > 1);
     static const bool multicore = (Traits<Build>::CPUS > 1) && multithread;
     static const unsigned int mode = Traits<Build>::MODE;
-    static const bool multiheap = true;
+    static const bool multiheap = multitask || Traits<Scratchpad>::enabled;
 
     static const unsigned long LIFE_SPAN = 1 * YEAR; // s
 

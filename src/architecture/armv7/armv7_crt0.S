@@ -5,11 +5,11 @@
         // Entry point
         .section .text
         .align  2
-        .global irq_stack,svc_stack, _start
-        .type   _start function
+        .global irq_stack, svc_stack, _start,CPUsecondary
+        .type   _start , function
 
 svc_stack:
-.word 0x0FEFFFFC
+.word 0x0FEFFFFC //
 irq_stack:
 .word 0xFF00FFC 
 _start:
@@ -36,6 +36,7 @@ _start:
  MSR cpsr, #0x13
  cmp r11, #0
  bne CPUsecondary // goto CPUsecondary if not CPU0 
+ bl copy_vectors //copy the vector table to 0x00
 // Clear the BSS
         eor     r0, r0
         ldr     r1, =__bss_start__
@@ -47,7 +48,7 @@ _start:
 
 CPUsecondary:// execute by CPUs secondary
         // Call _init
- bl      _init
+bl  _init
         // Call main
         .align  2
         .globl  __epos_app_entry
