@@ -8,14 +8,14 @@
 // This section is generated automatically from makedefs by $EPOS/etc/makefile
 //============================================================================
 #define SMOD library
-#define ARCH ia32
-#define MACH pc
-#define MMOD legacy_pc
-#define APPL philosophers_dinner
+#define ARCH armv7
+#define MACH cortex_a
+#define MMOD realview_pbx
+#define APPL producer_consumer
 #define __mode_library__
-#define __arch_ia32__
-#define __mach_pc__
-#define __mmod_legacy_pc__
+#define __arch_armv7__
+#define __mach_cortex_a__
+#define __mmod_realview_pbx__
 
 //============================================================================
 // NAMESPACES AND DEFINITIONS
