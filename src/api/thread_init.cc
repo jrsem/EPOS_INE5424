@@ -7,7 +7,10 @@
 
 __BEGIN_SYS
 
-extern "C" { void __epos_app_entry(); }
+extern "C"
+{
+    void __epos_app_entry();
+}
 
 void Thread::init()
 {
@@ -15,7 +18,8 @@ void Thread::init()
 
     Machine::smp_barrier();
 
-    if(Machine::cpu_id() == 0) {
+    if (Machine::cpu_id() == 0)
+    {
         // If EPOS is a library, then adjust the application entry point to __epos_app_entry,
         // which will directly call main(). In this case, _init will have already been called,
         // before Init_Application to construct MAIN's global objects.
@@ -23,7 +27,8 @@ void Thread::init()
 
         // Idle thread creation does not cause rescheduling (see Thread::constructor_epilogue)
         new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
-    } else
+    }
+    else
         new (SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::IDLE), &Thread::idle);
 
     Machine::smp_barrier();
@@ -34,12 +39,13 @@ void Thread::init()
     // Letting reschedule() happen during thread creation is also harmless, since MAIN is
     // created first and dispatch won't replace it nor by itself neither by IDLE (which
     // has a lower priority)
-    if(Criterion::timed && (Machine::cpu_id() == 0))
+    if (Criterion::timed && (Machine::cpu_id() == 0))
         _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
 
     // Install an interrupt handler to receive forced reschedules
-    if(smp) {
-        if(Machine::cpu_id() == 0)
+    if (smp)
+    {
+        if (Machine::cpu_id() == 0)
             IC::int_vector(IC::INT_RESCHEDULER, rescheduler);
         IC::enable(IC::INT_RESCHEDULER);
     }

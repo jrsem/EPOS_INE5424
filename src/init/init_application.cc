@@ -24,7 +24,7 @@ public:
         db<Init>(TRC) << "Init_Application()" << endl;
 
         // Only the boot CPU runs INIT_APPLICATION on non-kernel configurations
-        if (!Traits<System>::multitask)
+        if (!Traits<System>::multithread) //Traits<System>::multitask
         {
             Machine::smp_barrier();
             if (Machine::cpu_id() != 0)

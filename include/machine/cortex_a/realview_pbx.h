@@ -222,6 +222,8 @@ protected:
     static void pre_init();
     static void init();
     static void enableSCU();
+    static void config_gic();
+    static void config_int(int intID, int targetCPU);
 };
 
 typedef RealView_PBX Machine_Model;
