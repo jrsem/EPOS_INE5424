@@ -45,7 +45,7 @@ public:
         IRQ_GIC10               = 26,
         IRQ_GIC11_GLOBAL_TIMER  = 27,
         IRQ_GIC12               = 28,
-        IRQ_GIC13               = 29,
+        IRQ_GIC13_PRIV_TIMER    = 29,
         IRQ_GIC14               = 30,
         IRQ_GIC15               = 31,
         IRQ_WATCHDOG            = 32,
@@ -82,7 +82,7 @@ public:
     static const unsigned int INTS = 96;
     static const unsigned int EXC_INT = 0;
     enum {
-        INT_TIMER = IRQ_GIC11_GLOBAL_TIMER,
+        INT_TIMER = IRQ_GIC13_PRIV_TIMER,
         INT_USER_TIMER0  = IRQ_TIMER0AND1,
         INT_USER_TIMER1  = IRQ_TIMER0AND1,
         INT_USER_TIMER2  = IRQ_TIMER2AND3,
@@ -117,7 +117,12 @@ public:
     }
 
     // Only works in handler mode (inside IC::entry())
-    static Interrupt_Id int_id() { return CPU::flags() & 0x3f; }
+    static Interrupt_Id int_id() { 
+        Reg32 int_ack = gic(GIC_INT_ACK) & 0X3ff; // 10 bits mask
+
+        gic(GIC_EOI) = int_ack;
+        return int_ack;
+    }
 
     static void init() {
         // Set interrup priority mask

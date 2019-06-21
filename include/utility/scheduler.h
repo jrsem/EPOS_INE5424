@@ -7,7 +7,7 @@
 #include <utility/list.h>
 #include <machine/timer.h>
 
-__BEGIN_SYS
+__BEGIN_UTIL
 
 // All scheduling criteria, or disciplines, must define operator int() with
 // the semantics of returning the desired order of a given object within the
@@ -27,15 +27,31 @@ namespace Scheduling_Criteria
             IDLE   = (unsigned(1) << (sizeof(int) * 8 - 1)) - 1
         };
 
+        // Constructor helpers
+        enum {
+            ANY         = -1
+        };
+
         // Policy traits
         static const bool timed = false;
         static const bool dynamic = false;
         static const bool preemptive = true;
+        static const unsigned int QUEUES = 1;
 
     public:
-        Priority(int p = NORMAL): _priority(p) {}
+        template <typename ... Tn>
+        Priority(int p = NORMAL, Tn & ... an): _priority(p) {}
 
         operator const volatile int() const volatile { return _priority; }
+
+        Priority operator +=(Priority rhs) {
+            if(_priority < (IDLE - rhs)) {
+                _priority += rhs;
+            }
+            return *this;
+        }
+
+        unsigned int queue() const { return 0; }
 
     protected:
         volatile int _priority;
@@ -45,22 +61,17 @@ namespace Scheduling_Criteria
     class RR: public Priority
     {
     public:
-        enum {
-            MAIN   = 0,
-            NORMAL = 1,
-            IDLE   = (unsigned(1) << (sizeof(int) * 8 - 1)) - 1
-        };
-
         static const bool timed = true;
         static const bool dynamic = false;
         static const bool preemptive = true;
 
     public:
-        RR(int p = NORMAL): Priority(p) {}
+        template <typename ... Tn>
+        RR(int p = NORMAL, Tn & ... an): Priority(p) {}
     };
 
-    // First-Come, First-Served (FIFO)
-    class FCFS: public Priority
+    // Feedback Scheduling
+    class FS: public Priority
     {
     public:
         enum {
@@ -69,12 +80,62 @@ namespace Scheduling_Criteria
             IDLE   = (unsigned(1) << (sizeof(int) * 8 - 1)) - 1
         };
 
+        static const bool timed = true;
+        static const bool dynamic = true;
+        static const bool preemptive = true;
+
+    public:
+        FS(int p = NORMAL): Priority(p) {}
+    };
+
+    // First-Come, First-Served (FIFO)
+    class FCFS: public Priority
+    {
+    public:
         static const bool timed = false;
         static const bool dynamic = false;
         static const bool preemptive = false;
 
     public:
-        FCFS(int p = NORMAL); // Defined at Alarm
+        FCFS(int p = NORMAL);
+
+        template <typename ... Tn>
+        FCFS(Tn & ... an) {}
+    };
+
+
+    // Multicore Algorithms
+    class Variable_Queue
+    {
+    protected:
+        Variable_Queue(unsigned int queue): _queue(queue) {};
+
+    public:
+        const volatile unsigned int & queue() const volatile { return _queue; }
+
+    protected:
+        volatile unsigned int _queue;
+        static volatile unsigned int _next_queue;
+    };
+    
+    // CPU Affinity
+    class CPU_Affinity: public Priority, public Variable_Queue
+    {
+    public:
+        static const bool timed = false;
+        static const bool dynamic = false;
+        static const bool preemptive = true;
+
+        static const unsigned int QUEUES = Traits<Machine>::CPUS;
+
+    public:
+        template <typename ... Tn>
+        CPU_Affinity(int p = NORMAL, int cpu = ANY, Tn & ... an)
+        : Priority(p), Variable_Queue(((_priority == IDLE) || (_priority == MAIN)) ? Machine::cpu_id() : (cpu != ANY) ? cpu : ++_next_queue %= Machine::n_cpus()) {}
+
+        using Variable_Queue::queue;
+
+        static unsigned int current_queue() { return Machine::cpu_id(); }
     };
 }
 
@@ -82,6 +143,10 @@ namespace Scheduling_Criteria
 // Scheduling_Queue
 template<typename T, typename R = typename T::Criterion>
 class Scheduling_Queue: public Scheduling_List<T> {};
+
+template<typename T>
+class Scheduling_Queue<T, Scheduling_Criteria::CPU_Affinity>:
+public Scheduling_Multilist<T> {};
 
 // Scheduler
 // Objects subject to scheduling by Scheduler must declare a type "Criterion"
@@ -169,6 +234,6 @@ public:
     }
 };
 
-__END_SYS
+__END_UTIL
 
 #endif

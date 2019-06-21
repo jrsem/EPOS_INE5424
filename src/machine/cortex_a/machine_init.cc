@@ -18,9 +18,9 @@ void Machine::pre_init(System_Info *si)
     RealView_PBX::init(); //anable the Gic
     if (Traits<System>::multicore)
         smp_init(Traits<Build>::CPUS);
-    send_sgi(0x0, 0x0f, 0x01);       //DEU UM SGI NO CPU1
-    int *apAddr = (int *)0x10000030; // SYS_FLAGSSET register
-    *apAddr = (int)0x10000;          // all APs execute from 0x10000
+    // send_sgi(0x0, 0x0f, 0x01);       //DEU UM SGI NO CPU1
+    // int *apAddr = (int *)0x10000030; // SYS_FLAGSSET register
+    // *apAddr = (int)0x10000;          // all APs execute from 0x10000
 }
 
 void Machine::init()

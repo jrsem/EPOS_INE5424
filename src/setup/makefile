@@ -16,4 +16,4 @@ install.o:	$(MACH)_setup.o
 		$(INSTALL) $< $(LIB)
 
 clean:
-		$(CLEAN) *.o *_setup
+		$(CLEAN) *.o *.s *_setup

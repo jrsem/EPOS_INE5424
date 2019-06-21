@@ -12,17 +12,19 @@
 
 __BEGIN_SYS
 
-class Machine : private Machine_Common, private Machine_Model
+class Machine: private Machine_Common, private Machine_Model
 {
     friend class Init_System;
     friend class First_Object;
+
+private:
     static const bool smp = Traits<System>::multicore;
 
 public:
     Machine() {}
 
-    static void delay(const RTC::Microsecond &time);
-
+    static void delay(const RTC::Microsecond & time);
+    
     static void panic();
     static void reboot();
     static void poweroff();
@@ -32,14 +34,16 @@ public:
 
     static void smp_init(unsigned int n_cpus) { _n_cpus = n_cpus; }
     static void smp_barrier(unsigned long n_cpus = _n_cpus);
-    static void send_sgi(int intID, int targetCPU, int filter);
+
+    static const UUID & uuid() { return Machine_Model::uuid(); }
 
 private:
-    static void pre_init(System_Info *si);
+    static void pre_init(System_Info * si);
     static void init();
 
 private:
     static volatile unsigned int _n_cpus;
+
 };
 
 __END_SYS
