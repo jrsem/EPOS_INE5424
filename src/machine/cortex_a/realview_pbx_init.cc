@@ -17,12 +17,12 @@ void RealView_PBX::init()
   ASM("mcr p15, 0, %0, c12, c0, 0"
       :
       : "p"(Traits<Machine>::VECTOR_TABLE));
-  //
-  // Machine::enable_scu();
-  // //Machine::secure_SCU_invalidate(Machine::cpu_id(), 0xF = 0xb1111);
-  // Machine::join_smp();
-  // Machine::enable_maintenance_broadcast();
-  // Machine::n_cpus();
+
+  Machine::enable_scu();
+  //Machine::secure_SCU_invalidate(Machine::cpu_id(), 0xF = 0xb1111);
+  Machine::join_smp();
+  Machine::enable_maintenance_broadcast();
+  Machine::n_cpus();
 
   if (cpu_id() == 0)
   {

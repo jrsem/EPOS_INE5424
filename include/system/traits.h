@@ -2,7 +2,7 @@
 #define __traits_h
 
 #include <system/config.h>
-
+#include <scheduler.h>
 __BEGIN_SYS
 
 // Global Configuration
