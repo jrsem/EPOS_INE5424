@@ -6,9 +6,7 @@ OStream cout;
 
 int main()
 {
-    cout << "Hello world!" << endl;
-    // while (1)
-    //     asm("WFI");
+    cout << "Hello world!!!" << endl;
 
     return 0;
 }
