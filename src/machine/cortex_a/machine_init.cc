@@ -14,7 +14,6 @@ void Machine::pre_init(System_Info *si)
     if (cpu_id() == 0)
     {
         Display::init();
-        Machine::enable_scu();
     }
     // if (Traits<System>::multicore)
     //     smp_init(Traits<Build>::CPUS);

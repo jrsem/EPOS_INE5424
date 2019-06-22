@@ -10,13 +10,19 @@ __BEGIN_SYS
 
 void RealView_PBX::pre_init()
 {
-  ASM("mcr p15, 0, %0, c12, c0, 0"
-      :
-      : "p"(Traits<Machine>::VECTOR_TABLE));
 }
 
 void RealView_PBX::init()
 {
+  ASM("mcr p15, 0, %0, c12, c0, 0"
+      :
+      : "p"(Traits<Machine>::VECTOR_TABLE));
+  Machine::enable_scu();
+  Machine::secure_SCU_invalidate(Machine::cpu_id(), unsigned int ways);
+  Machine::join_smp();
+  Machine::enable_maintenance_broadcast();
+  Machine::n_cpus();
+
   if (cpu_id() == 0)
   {
     Machine::enable_GIC();

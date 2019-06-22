@@ -132,6 +132,44 @@ void Machine::join_smp(void)
     __asm("BX      lr");
     /* ENDP */
 }
+
+void Machine::secure_SCU_invalidate(unsigned int cpu, unsigned int ways)
+{
+    // cpu: 0x0=CPU 0 0x1=CPU 1 etc...
+    // This function invalidates the SCU copy of the tag rams
+    // for the specified core.  Typically only done at start-up.
+    // Possible flow:
+    // - Invalidate L1 caches
+    // - Invalidate SCU copy of TAG RAMs
+    // - Join SMP
+    /* secure_SCU_invalidate PROC */
+    __asm("AND     r0, r0, #0x03");  // Mask off unused bits of CPU ID
+    __asm("MOV     r0, r0, LSL #2"); // Convert into bit offset (four bits per core)
+
+    __asm("AND     r1, r1, #0x0F");  // Mask off unused bits of ways
+    __asm("MOV     r1, r1, LSL r0"); // Shift ways into the correct CPU field
+
+    __asm("MRC     p15, 4, r2, c15, c0, 0"); // Read periph base address
+
+    __asm("STR     r1, [r2, #0x0C]"); // Write to SCU Invalidate All in Secure State
+
+    __asm("BX      lr");
+
+    /* ENDP */
+}
+void Machine::enable_maintenance_broadcast(void)
+{
+    // Enable the broadcasting of cache & TLB maintenance operations
+    // When enabled AND in SMP, broadcast all "inner sharable"
+    // cache and TLM maintenance operations to other SMP cores
+    /* enable_maintenance_broadcast PROC */
+    __asm("MRC     p15, 0, r0, c1, c0, 1"); // Read Aux Ctrl register
+    __asm("ORR     r0, r0, #0x01");         // Set the FW bit (bit 0)
+    __asm("MCR     p15, 0, r0, c1, c0, 1"); // Write Aux Ctrl register
+
+    __asm("BX      lr");
+    /* ENDP */
+}
 void Machine::smp_barrier(unsigned long n_cpus)
 {
     static volatile unsigned long ready[2];
