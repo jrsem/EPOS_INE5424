@@ -33,10 +33,10 @@ public:
     static void smp_init(unsigned int n_cpus) { _n_cpus = n_cpus; }
     static void smp_barrier(unsigned long n_cpus = _n_cpus);
     static void send_sgi(int intID, int targetCPU, int filter);
-    static void enable_GIC(void);
-    static void disable_GIC(void);
-    static void enable_gic_processor_interface(void);
-    static void disable_gic_processor_interface(void);
+    // static void enable_GIC(void);
+    // static void disable_GIC(void);
+    // static void enable_gic_processor_interface(void);
+    // static void disable_gic_processor_interface(void);
     static void secure_SCU_invalidate(unsigned int cpu, unsigned int ways);
     static void enable_maintenance_broadcast(void);
     static void enable_scu(void);

@@ -14,14 +14,15 @@ private:
     static const unsigned int HEAP_SIZE = Traits<System>::HEAP_SIZE;
 
 public:
-    Init_System() //mainKernel()
+    Init_System()
     {
         db<Init>(TRC) << "Init_System()" << endl;
-        Machine::smp_barrier();
+        //Machine::smp_barrier();
         if (Machine::cpu_id() != 0)
         {
             // Wait until the boot CPU has initialized the machine
             Machine::smp_barrier();
+
             // For IA-32, timer is CPU-local. What about other SMPs?
             CPU::init();
             Timer::init();

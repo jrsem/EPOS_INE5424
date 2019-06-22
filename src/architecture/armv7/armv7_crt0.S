@@ -36,7 +36,7 @@ _start:
  MSR cpsr, #0x13
  cmp r11, #0
  bne CPUsecondary // goto CPUsecondary if not CPU0 
- bl copy_vectors //copy the vector table to 0x00
+ //bl copy_vectors //copy the vector table to 0x00
 // Clear the BSS
         eor     r0, r0
         ldr     r1, =__bss_start__

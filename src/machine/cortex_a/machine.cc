@@ -21,22 +21,7 @@ void Machine::reboot()
     db<Machine>(WRN) << "Machine::reboot()" << endl;
     Machine_Model::reboot();
 }
-void Machine::enable_GIC(void)
-{
-    // Global enable of the Interrupt Distributor
-    /* enable_GIC PROC */
 
-    // Get base address of private perpherial space
-    __asm("MRC     p15, 4, r0, c15, c0, 0"); // Read periph base address
-    __asm("ADD     r0, r0, #0x1000");        // Add the GIC offset
-
-    __asm("LDR     r1, [r0]");      // Read the GIC's Enable Register  (ICDDCR)
-    __asm("ORR     r1, r1, #0x01"); // Set bit 0, the enable bit
-    __asm("STR     r1, [r0]");      // Write the GIC's Enable Register  (ICDDCR)
-
-    __asm("BX      lr");
-    /* ENDP */
-}
 void Machine::send_sgi(int intID, int targetCPU, int filter)
 {
     // Send a software generate interrupt
@@ -59,51 +44,6 @@ void Machine::send_sgi(int intID, int targetCPU, int filter)
     /* ENDP */
 }
 
-void Machine::disable_gic_processor_interface(void)
-{
-    // Disables the processor interface
-    // Must been done one each CPU seperately
-    /* disable_gic_processor_interface PROC */
-
-    __asm("MRC     p15, 4, r0, c15, c0, 0"); // Read periph base address
-
-    __asm("LDR     r1, [r0, #0x100]"); // Read the Processor Interface Control register   (ICCICR/ICPICR)
-    __asm("BIC     r1, r1, #0x03");    // Bit 0: Enables secure interrupts, Bit 1: Enables Non-Secure interrupts
-    __asm("STR     r1, [r0, #0x100]"); // Write the Processor Interface Control register  (ICCICR/ICPICR)
-
-    __asm("BX      lr");
-}
-void Machine::disable_GIC(void)
-{
-    // Global disable of the Interrupt Distributor
-    /* disable_GIC PROC */
-
-    // Get base address of private perpherial space
-    __asm("MRC     p15, 4, r0, c15, c0, 0"); // Read periph base address
-    __asm("ADD     r0, r0, #0x1000");        // Add the GIC offset
-
-    __asm("LDR     r1, [r0]");      // Read the GIC's Enable Register  (ICDDCR)
-    __asm("BIC     r1, r1, #0x01"); // Set bit 0, the enable bit
-    __asm("STR     r1, [r0]");      // Write the GIC's Enable Register  (ICDDCR)
-
-    __asm("BX      lr");
-    /* ENDP */
-}
-void Machine::enable_gic_processor_interface(void)
-{
-    // Enables the processor interface
-    // Must been done one each CPU seperately
-    /* enable_gic_processor_interface PROC */
-
-    __asm("MRC     p15, 4, r0, c15, c0, 0"); // Read periph base address
-
-    __asm("LDR     r1, [r0, #0x100]"); // Read the Processor Interface Control register   (ICCICR/ICPICR)
-    __asm("ORR     r1, r1, #0x03");    // Bit 0: Enables secure interrupts, Bit 1: Enables Non-Secure interrupts
-    __asm("STR     r1, [r0, #0x100]"); // Write the Processor Interface Control register  (ICCICR/ICPICR)
-
-    __asm("BX      lr");
-    /* ENDP */
-}
 void Machine::enable_scu()
 {
     // Enables the SCU

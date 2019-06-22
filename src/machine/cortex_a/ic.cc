@@ -3,15 +3,42 @@
 #include <machine/main.h>
 #include <machine/cortex_a/ic.h>
 
-extern "C" { void _int_entry() __attribute__ ((alias("_ZN4EPOS1S2IC5entryEv"))); }
-extern "C" { void _dispatch(unsigned int) __attribute__ ((alias("_ZN4EPOS1S2IC8dispatchEj"))); }
-extern "C" { void _eoi(unsigned int) __attribute__ ((alias("_ZN4EPOS1S2IC3eoiEj"))); }
-extern "C" { void _undefined_instruction() __attribute__ ((alias("_ZN4EPOS1S2IC21undefined_instructionEv"))); }
-extern "C" { void _software_interrupt() __attribute__ ((alias("_ZN4EPOS1S2IC18software_interruptEv"))); }
-extern "C" { void _prefetch_abort() __attribute__ ((alias("_ZN4EPOS1S2IC14prefetch_abortEv"))); }
-extern "C" { void _data_abort() __attribute__ ((alias("_ZN4EPOS1S2IC10data_abortEv"))); }
-extern "C" { void _reserved() __attribute__ ((alias("_ZN4EPOS1S2IC8reservedEv"))); }
-extern "C" { void _fiq() __attribute__ ((alias("_ZN4EPOS1S2IC3fiqEv"))); }
+extern "C"
+{
+    void _int_entry() __attribute__((alias("_ZN4EPOS1S2IC5entryEv")));
+}
+extern "C"
+{
+    void _dispatch(unsigned int) __attribute__((alias("_ZN4EPOS1S2IC8dispatchEj")));
+}
+extern "C"
+{
+    void _eoi(unsigned int) __attribute__((alias("_ZN4EPOS1S2IC3eoiEj")));
+}
+extern "C"
+{
+    void _undefined_instruction() __attribute__((alias("_ZN4EPOS1S2IC21undefined_instructionEv")));
+}
+extern "C"
+{
+    void _software_interrupt() __attribute__((alias("_ZN4EPOS1S2IC18software_interruptEv")));
+}
+extern "C"
+{
+    void _prefetch_abort() __attribute__((alias("_ZN4EPOS1S2IC14prefetch_abortEv")));
+}
+extern "C"
+{
+    void _data_abort() __attribute__((alias("_ZN4EPOS1S2IC10data_abortEv")));
+}
+extern "C"
+{
+    void _reserved() __attribute__((alias("_ZN4EPOS1S2IC8reservedEv")));
+}
+extern "C"
+{
+    void _fiq() __attribute__((alias("_ZN4EPOS1S2IC3fiqEv")));
+}
 
 __BEGIN_SYS
 
@@ -21,7 +48,7 @@ IC::Interrupt_Handler IC::_int_vector[IC::INTS];
 // Class methods
 void IC::dispatch(unsigned int id)
 {
-    if((id != INT_TIMER) || Traits<IC>::hysterically_debugged)
+    if ((id != INT_TIMER) || Traits<IC>::hysterically_debugged)
         db<IC>(TRC) << "IC::dispatch(i=" << id << ")" << endl;
 
     _int_vector[id](id);
@@ -29,11 +56,11 @@ void IC::dispatch(unsigned int id)
 
 void IC::eoi(unsigned int id)
 {
-    if((id != INT_TIMER) || Traits<IC>::hysterically_debugged)
+    if ((id != INT_TIMER) || Traits<IC>::hysterically_debugged)
         db<IC>(TRC) << "IC::eoi(i=" << id << ")" << endl;
 
     assert(id < INTS);
-    if(_eoi_vector[id])
+    if (_eoi_vector[id])
         _eoi_vector[id](id);
 }
 
@@ -69,15 +96,17 @@ void IC::entry()
         "msr spsr_cfxs, r0                          \n"
         // Restore context, the ^ in the end of the above instruction makes the
         // irq_spsr to be restored into svc_cpsr
-        "ldmfd sp!, {r0-r3, r12, lr, pc}^           \n" : : "i"(dispatch));
+        "ldmfd sp!, {r0-r3, r12, lr, pc}^           \n"
+        :
+        : "i"(dispatch));
 }
 
-void IC::int_not(const Interrupt_Id & i)
+void IC::int_not(const Interrupt_Id &i)
 {
     db<IC>(WRN) << "IC::int_not(i=" << i << ")" << endl;
 }
 
-void IC::hard_fault(const Interrupt_Id & i)
+void IC::hard_fault(const Interrupt_Id &i)
 {
     db<IC>(ERR) << "IC::hard_fault(i=" << i << ")" << endl;
     Machine::panic();
