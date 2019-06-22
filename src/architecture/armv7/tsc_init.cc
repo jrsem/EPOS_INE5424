@@ -11,18 +11,16 @@ void TSC::init()
 
 #if defined(__mach_cortex_a__)
 
-    if(Machine::cpu_id() == 0) {
-        // Disable counting before programming
-        reg(GTCLR) = 0;
+    // Disable counting before programming
+    reg(GTCLR) = 0;
 
-        // Set timer to 0
-        reg(GTCTRL) = 0;
-        reg(GTCTRH) = 0;
+    // Set timer to 0
+    reg(GTCTRL) = 0;
+    reg(GTCTRH) = 0;
 
-        // Re-enable counting
-        reg(GTCLR) = 1;
-    }
-    
+    // Re-enable counting
+    reg(GTCLR) = 1;
+
 #elif defined(__mach_cortex_m__)
 
     reg(Machine_Model::GPTMCTL) &= ~Machine_Model::TAEN; // Disable timer

@@ -9,6 +9,7 @@ __BEGIN_SYS
 
 class Address_Space: private MMU::Directory
 {
+
 private:
     using MMU::Directory::activate;
 

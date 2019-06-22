@@ -7,10 +7,12 @@
 
 __BEGIN_UTIL
 
+template <unsigned int KEY_SIZE> class AES;
+
 // EPOS 128-bit Advanced Encryption Standard (AES) Software Implementation
 // Adapted from https://github.com/kokke/tiny-AES128-C
 template<>
-class _AES<16>
+class AES<16>
 {
 private:
     static const unsigned int Nb = 4; // number of columns comprising a _state
@@ -28,7 +30,7 @@ public:
     };
 
 public:
-    _AES(const Mode & m = ECB): _mode(m) {
+    AES(const Mode & m = ECB): _mode(m) {
         assert((m == ECB) || (m == CBC));
         for(unsigned int i = 0; i < 23; i++)
             iv[i] = 0;
@@ -46,15 +48,15 @@ private:
     }
 
     void crypt(const unsigned char * data, const unsigned char * key, unsigned char * result, bool encrypt) {
-        db<_AES>(TRC) << "AES::" << (encrypt ? "en" : "de") << "crypt(data=" << data << ",key=" << key << ",result=" << result << endl;
-        db<_AES>(INF) << "AES::" << (encrypt ? "en" : "de") << "crypt:data = {" << int(data[0]);
+        db<AES>(TRC) << "AES::" << (encrypt ? "en" : "de") << "crypt(data=" << data << ",key=" << key << ",result=" << result << endl;
+        db<AES>(INF) << "AES::" << (encrypt ? "en" : "de") << "crypt:data = {" << int(data[0]);
         for(unsigned int i = 1; i < 16; i++)
-            db<_AES>(INF) << "," << int(data[i]);
-        db<_AES>(INF) << "}" << endl;
-        db<_AES>(INF) << "AES::" << (encrypt ? "en" : "de") << "crypt:key = {" << int(key[0]);
+            db<AES>(INF) << "," << int(data[i]);
+        db<AES>(INF) << "}" << endl;
+        db<AES>(INF) << "AES::" << (encrypt ? "en" : "de") << "crypt:key = {" << int(key[0]);
         for(unsigned int i = 1; i < 16; i++)
-            db<_AES>(INF) << "," << int(key[i]);
-        db<_AES>(INF) << "}" << endl;
+            db<AES>(INF) << "," << int(key[i]);
+        db<AES>(INF) << "}" << endl;
 
         switch(_mode) {
         case CBC:
@@ -71,10 +73,10 @@ private:
             break;
         }
 
-        db<_AES>(INF) << "AES::" << (encrypt ? "en" : "de") << "crypt:result = {" << int(result[0]);
+        db<AES>(INF) << "AES::" << (encrypt ? "en" : "de") << "crypt:result = {" << int(result[0]);
         for(unsigned int i = 1; i < 16; i++)
-            db<_AES>(INF) << "," << int(result[i]);
-        db<_AES>(INF) << "}" << endl;
+            db<AES>(INF) << "," << int(result[i]);
+        db<AES>(INF) << "}" << endl;
     }
 
     void cbc_encrypt_buffer(unsigned char * output, const unsigned char * input, int length, const unsigned char * key, unsigned char * iv);

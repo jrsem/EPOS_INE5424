@@ -6,7 +6,7 @@
 #=========================================================================
 # PATHS
 #=========================================================================
-EPOS=/home/junior/Desktop/SO2Final
+EPOS=/home/junior/Pictures/EPOS_INE5424-master
 TMP=/tmp
 INC=$EPOS/include
 SRC=$EPOS/src
@@ -33,7 +33,7 @@ CONFIGURATOR=eposcfg
 
 COMP_FLGS="-include $INC/system.h"
 COMP_HDRS="$INC"
-if [ "$SMOD" = "kernel" ] ; then
+if [ "$MODE" = "kernel" ] ; then
 COMP_FLGS="$COMP_FLGS -include $INC/framework/main.h"
 fi
 

@@ -7,8 +7,7 @@
 
 __BEGIN_SYS
 
-// Cubic Nondispersive Infrared (NDIR) Carbon Dioxide Single Beam Sensor CM1101
-class CM1101
+class CM1101: private Transducer_Common
 {
 public:
     // Commands
@@ -111,7 +110,7 @@ private:
             if(c == (0x100 - cs)) {
                 _co2 = resp[0] * 0x100 + resp[1];
                 if(_version == V3_03) {
-                    // Temperature seems to be in Fahrenheit despite the manual stating they're in Celsius!
+                    // Temperature seem to be in Fahrenheit despite the manual stating that they're in Celsius!
                     _temperature = 10 * ((resp[2] * 0x100 + resp[3]) / 10 - 32) / 18;
                     _humidity = (resp[4] * 0x100 + resp[5]) / 10;
                 }

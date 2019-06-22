@@ -7,16 +7,17 @@ void wfi()
 {
     asm("wfi");
 }
+//preinicialização do Realview PBX
 void Machine::pre_init(System_Info *si)
 {
+    Machine::join_smp();
     if (cpu_id() == 0)
     {
-        //Machine_Model::copyVectorTable();
         Display::init();
+        Machine::enable_scu();
     }
-    RealView_PBX::init(); //anable the Gic
-    if (Traits<System>::multicore)
-        smp_init(Traits<Build>::CPUS);
+    // if (Traits<System>::multicore)
+    //     smp_init(Traits<Build>::CPUS);
 }
 
 void Machine::init()
@@ -24,27 +25,21 @@ void Machine::init()
     db<Init, Machine>(TRC) << "Machine::init()" << endl;
     Machine_Model::init();
     if (Traits<IC>::enabled)
-        IC::init();
+        IC::init(); //configurar lo para receber interrrupção
     if (Traits<Timer>::enabled)
-        Timer::init();
-    //===
-    RealView_PBX::config_gic();
-    Machine::send_sgi(0x0, 0x0f, 0x01); ///send_sgi(0x0, 0x0f, 0x01);       //DEU UM SGI NO CPU1
-    int *apAddr = (int *)0x10000030;    // SYS_FLAGSSET register
-    *apAddr = (int)0x10000;             // all APs execute from 0x10000
-    //===
+        Timer::init(); //inicializar seu relogio
 #ifdef __USB_H
     if (Traits<USB>::enabled)
         USB::init();
 #endif
 }
 
-//SGI method
-void Machine::send_sgi(int intID, int targetCPU, int filter)
-{
-    int *sgi_reg = (int *)(0x1f000000 + 0x1F00);
-    *sgi_reg = (filter << 24) | ((1 << targetCPU) << 16) | (intID);
-}
+// //SGI method
+// void Machine::send_sgi(int intID, int targetCPU, int filter)
+// {
+//     int *sgi_reg = (int *)(0x1f000000 + 0x1F00);
+//     *sgi_reg = (filter << 24) | ((1 << targetCPU) << 16) | (intID);
+// }
 
 //===================================================
 //Send SGIs to wakeup other CPUs from the WFI state

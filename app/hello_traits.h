@@ -114,7 +114,6 @@ struct Traits<Build> : public Traits<void>
     static const unsigned int MODEL = Realview_PBX;
     static const unsigned int CPUS = 2;
     static const unsigned int NODES = 1; // > 1 => NETWORKING
-    static const unsigned int EXPECTED_SIMULATION_TIME = 60;
 };
 
 // Utilities
@@ -174,7 +173,7 @@ struct Traits<Init> : public Traits<void>
 template <>
 struct Traits<Serial_Display> : public Traits<void>
 {
-    static const bool enabled = (Traits<Build>::EXPECTED_SIMULATION_TIME != 0);
+    static const bool enabled = emulated;
     static const int ENGINE = UART;
     static const int COLUMNS = 80;
     static const int LINES = 24;

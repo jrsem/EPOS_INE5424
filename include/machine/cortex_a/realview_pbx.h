@@ -28,20 +28,17 @@ public:
     // Base addresses for memory-mapped I/O devices
     enum
     {
-        // https://wiki.osdev.org/User:Pancakes/arm_qemu_realview-pb-a
         // http://infocenter.arm.com/help/topic/com.arm.doc.dui0411d/DUI0411D_realview_platform_baseboard_ug.pdf
+        // https://wiki.osdev.org/User:Pancakes/arm_qemu_realview-pb-a
         // http://infocenter.arm.com/help/topic/com.arm.doc.dui0440b/DUI0440B_realview_platform_baseboard_for_cortexa9_ug.pdf
         // http://infocenter.arm.com/help/topic/com.arm.doc.ddi0407g/DDI0407G_cortex_a9_mpcore_r3p0_trm.pdf
-
-        SCR_BASE = 0x10000000,
-        SYSTEM_CONTROLLER_BASE = 0x10001000,
 
         UART0_BASE = 0x10009000,
         UART1_BASE = 0x1000a000,
         UART2_BASE = 0x1000b000,
         UART3_BASE = 0x1000c000,
 
-        WDT0_BASE = 0x10010000,
+        //WDT0_BASE = 0x10010000, //registradores de sistema
 
         GPIOA_BASE = 0x10013000,
         GPIOB_BASE = 0x10014000,
@@ -57,8 +54,9 @@ public:
         TIMER2_BASE = 0x10012000,
         TIMER3_BASE = 0x10012020,
 
-        GIC2_BASE = 0x1e020000,
-        GIC3_BASE = 0x1e030000,
+        // GIC2_BASE = 0x1E020000, //IRQ(output from dispositivos para um determinado cpu)
+        // GIC3_BASE = 0x1E030000, //FIQ ()
+        GIC_BASE = 0x1F000000, //output signal IRQ ou FIQ to the cpu
         PERIPHERAL_BASE = 0x1f000000,
     };
 
@@ -180,10 +178,21 @@ protected:
 
     static void reboot()
     {
+        // Reg32 val = scs(AIRCR) & (~((-1u / VECTKEY) * VECTKEY));
+        // val |= 0x05fa * VECTKEY | SYSRESREQ;
+        // scs(AIRCR) = val;
     }
 
     static void delay(const RTC::Microsecond &time)
     {
+        // assert(Traits<TSC>::enabled);
+        // unsigned long long ts = static_cast<unsigned long long>(time) * TSC::frequency() / 1000000;
+        // tsc(GPTMTAILR) = ts;
+        // tsc(GPTMTAPR) = ts >> 32;
+        // tsc(GPTMCTL) |= TAEN;
+        // while(!(tsc(GPTMRIS) & TATO_INT));
+        // tsc(GPTMCTL) &= ~TAEN;
+        // tsc(GPTMICR) |= TATO_INT;
     }
 
     static const UUID &uuid() { return System::info()->bm.uuid; } // TODO: System_Info is not populated in this machine
@@ -201,22 +210,66 @@ protected:
     // Device enabling
     static void enable_uart(unsigned int unit)
     {
+        // assert(unit < UARTS);
+        // power_uart(unit, FULL);
+        // gpioa(AFSEL) |= 3 << (unit * 2);                // Pins A[1:0] are multiplexed between GPIO and UART 0. Select UART.
+        // gpioa(DEN) |= 3 << (unit * 2);                  // Enable digital I/O on Pins A[1:0]
     }
 
     // Power Management
     static void power_uart(unsigned int unit, const Power_Mode &mode)
     {
+        // assert(unit < UARTS);
+        // switch(mode) {
+        // case ENROLL:
+        // 	break;
+        // case DISMISS:
+        // 	break;
+        // case SAME:
+        // 	break;
+        // case FULL:
+        // 	break;
+        // case LIGHT:
+        // 	break;
+        // case SLEEP:
+        //     scr(RCGC1) |= 1 << unit;                   // Activate UART "unit" clock
+        //     scr(RCGC2) |= 1 << unit;                   // Activate port "unit" clock
+        //     break;
+        // case OFF:
+        //     scr(RCGC1) &= ~(1 << unit);                // Deactivate UART "unit" clock
+        //     scr(RCGC2) &= ~(1 << unit);                // Deactivate port "unit" clock
+        //     break;
+        // }
     }
 
     static void power_user_timer(unsigned int unit, const Power_Mode &mode)
     {
+        // assert(unit < TIMERS);
+        // switch(mode) {
+        // case ENROLL:
+        // 	break;
+        // case DISMISS:
+        // 	break;
+        // case SAME:
+        // 	break;
+        // case FULL:
+        // 	break;
+        // case LIGHT:
+        // 	break;
+        // case SLEEP:
+        //     scr(RCGC1) |= 1 << (unit + 16);             // Activate GPTM "unit" clock
+        //     break;
+        // case OFF:
+        //     scr(RCGC1) &= ~(1 << (unit + 16));          // Deactivate GPTM "unit" clock
+        //     break;
+        // }
     }
 
 public:
     static volatile Reg32 &int_dist(unsigned int o) { return reinterpret_cast<volatile Reg32 *>(PERIPHERAL_BASE + INT_DIST)[o / sizeof(Reg32)]; }
     static volatile Reg32 &gic(unsigned int o) { return reinterpret_cast<volatile Reg32 *>(PERIPHERAL_BASE + GIC)[o / sizeof(Reg32)]; }
     static volatile Reg32 &global_timer(unsigned int o) { return reinterpret_cast<volatile Reg32 *>(PERIPHERAL_BASE + GLOBAL_TIMER)[o / sizeof(Reg32)]; }
-    static volatile Reg32 &priv_timer(unsigned int o) { return reinterpret_cast<volatile Reg32 *>(PERIPHERAL_BASE + PRIVATE_TIMERS)[o / sizeof(Reg32)]; }
+    static volatile Reg32 &priv_timer(unsigned int o) { return reinterpret_cast<volatile Reg32 *>(PERIPHERAL_BASE + TIMER0_BASE)[o / sizeof(Reg32)]; }
 
 protected:
     static void pre_init();
@@ -224,6 +277,7 @@ protected:
     static void enableSCU();
     static void config_gic();
     static void config_int(int intID, int targetCPU);
+    static void join_smp();
 };
 
 typedef RealView_PBX Machine_Model;

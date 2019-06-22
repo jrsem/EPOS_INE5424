@@ -38,9 +38,9 @@ IC::Interrupt_Handler IC::_eoi_vector[INTS] = {
     0,
     0,
     0,
+    Timer::eoi, // 27
     0,
     0,
-    Timer::eoi, // 29
     0,
     0,
     0,

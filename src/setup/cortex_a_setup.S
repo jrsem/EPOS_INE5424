@@ -5,7 +5,7 @@
         .type _vector_table, object
         .global _reset,vectors_start,vectors_end,enable_scu
         .type   _reset,  function
-        .global enable_scu
+        .global enable_scu,join_smp,
         @ .type   APstart,  function
 //create table vector in ROM(0x00)
  _reset: 
@@ -166,8 +166,15 @@ mmu_start:
                                         // coprocessor 15                                     
         ORR r1, r1, #0x1           	    // Atribui-se ao bit 0 em R1 o valor 1, para          
                                         // ligar a MMU                                        
-        MCR p15, 0, r1, c1, c0, 0	    // Escreve-se no reg 1 do coprocessor 15                                                   // o que há em R1, habilitando a MMU                                                                    
-b _mcu_start  
+        MCR p15, 0, r1, c1, c0, 0	    // Escreve-se no reg 1 do coprocessor 15              
+@ enable_scu: // enable the SCU //NB: "enable_scu"é uma função global
+@ MRC p15, 4, r0, c15, c0, 0 // Read peripheral base address
+@ LDR r1, [r0] // read SCU Control Register
+@ ORR r1, r1, #0x1 // set bit0 (Enable bit) to 1
+@ STR r1, [r0] // write back modified value
+@ BX lr                                    // o que há em R1, habilitando a MMU                                                                    
+b _mcu_start
+APaddr: .word APstart //loar function address
 vectors_start:
         ldr pc, _reset_addr
         ldr pc, _undefined_instruction_addr
@@ -195,10 +202,5 @@ _fiq_addr:
         .word _fiq
 vectors_end:
 
-enable_scu: // enable the SCU //NB: "enable_scu"é uma função global
-MRC p15, 4, r0, c15, c0, 0 // Read peripheral base address
-LDR r1, [r0] // read SCU Control Register
-ORR r1, r1, #0x1 // set bit0 (Enable bit) to 1
-STR r1, [r0] // write back modified value
-BX lr
+
 

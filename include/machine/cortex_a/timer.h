@@ -17,7 +17,7 @@ class System_Timer_Engine: public Machine_Model
 {
 public:
     typedef CPU::Reg32 Count;
-    static const unsigned int CLOCK = Traits<CPU>::CLOCK;
+    static const unsigned int CLOCK = Traits<CPU>::CLOCK / 2;
 
 protected:
     System_Timer_Engine() {}

@@ -356,12 +356,7 @@ public:
         // subject to memory remappings. We also cannot be sure about
         // global constructors here
         remap(addr);
-        if(Traits<System>::multicore) {
-            clear();
-            enable();
-            connect();
-        } else
-            disable();
+        disable();
     }
 
     static int eoi(unsigned int i) { // End of interrupt
@@ -465,13 +460,13 @@ private:
 };
 
 // IC uses i8259A on single-processor machines and the APIC timer on MPs
-class IC: private IC_Common, private IF<Traits<System>::multicore, APIC, i8259A>::Result
+class IC: private IC_Common, private i8259A
 {
     friend class Machine;
     friend class Thread;
 
 private:
-    typedef IF<Traits<System>::multicore, APIC, i8259A>::Result Engine;
+    typedef i8259A Engine;
 
     typedef CPU::Reg32 Reg32;
     typedef CPU::Log_Addr Log_Addr;
@@ -534,7 +529,19 @@ public:
     using Engine::irq2int;
 
 private:
-    static void dispatch(unsigned int i);
+    static void dispatch(unsigned int i) {
+        bool not_spurious = true;
+        if((i >= INT_FIRST_HARD) && (i <= INT_LAST_HARD))
+            not_spurious = eoi(i);
+        if(not_spurious) {
+            if((i != INT_TIMER) || Traits<IC>::hysterically_debugged)
+                db<IC>(TRC) << "IC::dispatch(i=" << i << ")" << endl;
+            _int_vector[i](i);
+        } else {
+            if(i != INT_LAST_HARD)
+                db<IC>(TRC) << "IC::spurious interrupt (" << i << ")" << endl;
+        }
+    }
 
     // Logical handlers
     static void int_not(const Interrupt_Id & i);

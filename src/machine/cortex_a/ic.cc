@@ -19,18 +19,10 @@ __BEGIN_SYS
 IC::Interrupt_Handler IC::_int_vector[IC::INTS];
 
 // Class methods
-void IC::dispatch(unsigned int i)
+void IC::dispatch(unsigned int id)
 {
-    Interrupt_Id id = int_id();
-
     if((id != INT_TIMER) || Traits<IC>::hysterically_debugged)
         db<IC>(TRC) << "IC::dispatch(i=" << id << ")" << endl;
-
-    assert(id < INTS);
-    if(_eoi_vector[id])
-        _eoi_vector[id](id);
-
-    CPU::int_enable();
 
     _int_vector[id](id);
 }

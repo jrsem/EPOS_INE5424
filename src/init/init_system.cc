@@ -14,13 +14,12 @@ private:
     static const unsigned int HEAP_SIZE = Traits<System>::HEAP_SIZE;
 
 public:
-    Init_System() {
+    Init_System() //mainKernel()
+    {
         db<Init>(TRC) << "Init_System()" << endl;
-
         Machine::smp_barrier();
-
-        // Only the boot CPU runs INIT_SYSTEM fully
-        if(Machine::cpu_id() != 0) {
+        if (Machine::cpu_id() != 0)
+        {
             // Wait until the boot CPU has initialized the machine
             Machine::smp_barrier();
             // For IA-32, timer is CPU-local. What about other SMPs?
@@ -37,20 +36,21 @@ public:
 
         // Initialize System's heap
         db<Init>(INF) << "Initializing system's heap: " << endl;
-        if(Traits<System>::multiheap) {
-            Segment * tmp = reinterpret_cast<Segment *>(&System::_preheap[0]);
+        if (Traits<System>::multiheap)
+        {
+            Segment *tmp = reinterpret_cast<Segment *>(&System::_preheap[0]);
             System::_heap_segment = new (tmp) Segment(HEAP_SIZE, WHITE, Segment::Flags::SYS);
             System::_heap = new (&System::_preheap[sizeof(Segment)]) Heap(Address_Space(MMU::current()).attach(System::_heap_segment, Memory_Map::SYS_HEAP), System::_heap_segment->size());
-        } else
+        }
+        else
             System::_heap = new (&System::_preheap[0]) Heap(MMU::alloc(MMU::pages(HEAP_SIZE)), HEAP_SIZE);
         db<Init>(INF) << "done!" << endl;
 
+        Machine::smp_barrier(); // signalizes "machine ready" to other CPUs
         // Initialize the machine
         db<Init>(INF) << "Initializing the machine: " << endl;
         Machine::init();
         db<Init>(INF) << "done!" << endl;
-
-        Machine::smp_barrier(); // signalizes "machine ready" to other CPUs
 
         // Initialize system abstractions
         db<Init>(INF) << "Initializing system abstractions: " << endl;
@@ -58,12 +58,13 @@ public:
         db<Init>(INF) << "done!" << endl;
 
         // Randomize the Random Numbers Generator's seed
-        if(Traits<Random>::enabled) {
+        if (Traits<Random>::enabled)
+        {
             db<Init>(INF) << "Randomizing the Random Numbers Generator's seed: " << endl;
-            if(Traits<TSC>::enabled)
+            if (Traits<TSC>::enabled)
                 Random::seed(TSC::time_stamp());
 
-            if(!Traits<TSC>::enabled)
+            if (!Traits<TSC>::enabled)
                 db<Init>(WRN) << "Due to lack of entropy, Random is a pseudo random numbers generator!" << endl;
             db<Init>(INF) << "done!" << endl;
         }

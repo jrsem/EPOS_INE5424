@@ -16,8 +16,6 @@ class Machine : private Machine_Common, private Machine_Model
 {
     friend class Init_System;
     friend class First_Object;
-
-private:
     static const bool smp = Traits<System>::multicore;
 
 public:
@@ -34,13 +32,18 @@ public:
 
     static void smp_init(unsigned int n_cpus) { _n_cpus = n_cpus; }
     static void smp_barrier(unsigned long n_cpus = _n_cpus);
+    static void send_sgi(int intID, int targetCPU, int filter);
+    static void enable_GIC(void);
+    static void disable_GIC(void);
+    static void enable_gic_processor_interface(void);
+    static void disable_gic_processor_interface(void);
 
-    static const UUID &uuid() { return Machine_Model::uuid(); }
+    static void enable_scu(void);
+    static void join_smp(void);
 
 private:
     static void pre_init(System_Info *si);
     static void init();
-    static void send_sgi(int intID, int targetCPU, int filter);
 
 private:
     static volatile unsigned int _n_cpus;

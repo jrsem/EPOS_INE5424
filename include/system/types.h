@@ -53,12 +53,11 @@ void * operator new[](size_t, const EPOS::Color &);
 // Utilities
 // Generic names such as "lists" and "hashes" are used to specify Traits<> and control debugging for all related utilities
 __BEGIN_UTIL
-
-template<int BITS> class Padding {} __attribute__((packed));
-template<> class Padding<8>  { char _padding;          } __attribute__((packed));
-template<> class Padding<16> { short int _padding;     } __attribute__((packed));
-template<> class Padding<32> { long int _padding;      } __attribute__((packed));
-template<> class Padding<64> { long long int _padding; } __attribute__((packed));
+template<int BITS> class Padding {};
+template<> class Padding<8> { char _padding;};
+template<> class Padding<16> { short int _padding;};
+template<> class Padding<32> { long int _padding;};
+template<> class Padding<64> { long long int _padding;};
 
 typedef unsigned char Percent;
 typedef unsigned char UUID[8];
@@ -80,16 +79,6 @@ class Random;
 class Spin;
 class SREC;
 class Vectors;
-template<unsigned int KEY_SIZE> class _AES;
-template<typename> class Scheduler;
-namespace Scheduling_Criteria
-{
-    class Priority;
-    class FCFS;
-    class RR;
-    class FS;
-    class CPU_Affinity;
-};
 
 __END_UTIL
 
@@ -126,7 +115,7 @@ class Keyboard;
 class Serial_Keyboard;
 class Scratchpad;
 class Watchdog;
-template<unsigned int KEY_SIZE> class _AES;
+template<unsigned int KEY_SIZE> class AES;
 class GPIO;
 class I2C;
 class ADC;
@@ -137,6 +126,14 @@ class Application;
 
 class Thread;
 class Active;
+
+template<typename> class Scheduler;
+namespace Scheduling_Criteria
+{
+    class Priority;
+    class FCFS;
+    class RR;
+};
 
 class Address_Space;
 class Segment;
